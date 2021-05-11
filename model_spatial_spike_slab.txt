@@ -1,0 +1,36 @@
+model {
+
+# Likelihood
+for (i in 1:n) {
+  Y[i] ~ dnegbin(q[i], N[i] * m)
+  q[i] <- m / (m + lambda[i])
+  log(lambda[i]) <- beta0 + inprod(X[i,], B[i,])
+}
+# Likelihood prior
+m ~ dgamma(0.1, 0.1)
+
+# Spike and Slab
+beta0 ~ dnorm(0, 0.1)
+for (j in 1:p) {
+  for (i in 1:n) {
+    B[i, j] <- gamma[i, j] * delta[j]
+    gamma[i, j] ~ dbern(prob[i])
+  }
+  delta[j] ~ dnorm(0, tau)
+}
+for (i in 1:n) {
+  prob[i] <- pnorm(l[i], 0, 1)
+}
+# Slab prior
+tau ~ dgamma(0.1, 0.1)
+
+# Latent Spatial Variable
+l[1:n] ~ dmnorm(mu[], tau2 * Sigma_inv[,]) 
+Sigma_inv <- M - rho * A
+# Latent Spatial prior
+for (i in 1:n) {
+  mu[i] <- 0
+}
+tau2 ~ dgamma(0.1, 0.1)
+rho ~ dbeta(1, 1)
+                                }
